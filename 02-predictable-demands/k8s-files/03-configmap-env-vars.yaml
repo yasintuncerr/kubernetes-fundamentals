@@ -1,0 +1,36 @@
+# 1. Define the ContigMap holding our configuration data.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+  #Key-value poirs of configuration
+  APP_MODE: "production"
+  LOG_LEVEL: "info"
+
+---
+
+# 2. Define the Pod that consumes the ConfigMap data as environment variables
+# This Pod has a runtime dependency on the 'app-config' ConfigMap.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-env-pod
+spec:
+  containers:
+  - name: app-container
+    image: busybox
+    command: [ "/bin/sh", "-c", "echo \"Starting app in mode: $APP_MODE with log level: $LOG_LEVEL\"; sleep 3600" ]
+    env:
+     # Define environment vatriables by referencing keys in the ConfigMap.
+     - name: APP_MODE
+       valueFrom:
+         configMapKeyRef:
+           name: app-config # The name of the ConfigMap
+           key: APP_MODE    # The key to use as the environment variable value
+     - name: LOG_LEVEL
+       valueFrom:
+         configMapKeyRef:
+           name: app-config # The name of the ConfigMap
+           key: LOG_LEVEL   # The key to use as the environment variable value
+  restartPolicy: Never # Keep the pod running until manually stopped
