@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: best-effort-pod
+spec:
+  containers:
+  - name: app-container
+    image: busybox
+    command: ["/bin/sh", "-c", "sleep 3600"]
+      # No resource requests or limits are defined.
+      # Kubernetes assigns the 'Best-Effort' QoS class to this pod.
+      # This Pod has the lowest priority and will be evicted first.
