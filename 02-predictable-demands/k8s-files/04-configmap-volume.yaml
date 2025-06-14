@@ -1,0 +1,40 @@
+#1. Define the ConfigMap. One of the keys contains a multiline properties file.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-files
+data:
+  # THis key will become a file named 'app.properties'
+  app.properties: |
+    # Application properties
+    greeting=Hello from ConfigMap
+    feature.enabled=true
+  # This key will become a file named 'user.settings'
+  user.settings: |
+    # User settings
+    theme=dark
+    notifications=off
+
+---
+
+# 2. Define the pod that mounts the ConfigMap as a volume.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: configmap-volume-pod
+spec:
+  containers:
+  - name: app-containers
+    image: busybox
+    # This command lists the files int the config directory and then prints their contents.
+    command: ["/bin/sh", "-c", "echo '--- Files in /etc/config:'; ls -l /etc/config; echo '--- Content of app.properties:'; cat /etc/config/app.properties; echo '--- Content of user.settings:'; cat /etc/config/user.settings; sleep 3600" ]
+    volumeMounts:
+    - name: config-volume
+      mountPath: /etc/config # Mount the Volume at this path
+  # Define the volume and link it to the ConfigMap
+  volumes:
+  - name: config-volume
+    configMap:
+      name: app-config-files # The name of the ConfigMap to mount
+      
+  restartPolicy: Never # Keep the pod running until manually stopped 
