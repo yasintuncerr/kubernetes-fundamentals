@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: empty-dir-pod
+spec:
+  # Define a shared volume for this Pod. It is created when the Pod is assigned to a node.
+  # and exists as long as that Pod is running on that node. Its contents are lost when
+  # the Pod is removed.
+
+  volumes:
+    - name: shared-data
+      emptyDir: {}
+
+  containers:
+    # This container writes  a new message to the shared volume every 5 seconds.
+    - name: writer-container
+      image: busybox
+      command: ["/bin/sh", "-c", "while true; do echo \"Log From $(date)\" >> /pod-data/log.txt; sleep 5; done"]
+      volumeMounts:
+        - name: shared-data
+          mountPath: /pod-data # Mounts the 'shared-data' volume to the '/pod-data' directory in the container.
+
+    # This container reads the messages from the shared volume every 5 seconds.
+    - name: reader-container
+      image: busybox
+      command: ["/bin/sh", "-c", "while true; do echo '--- Last 5 lines ---'; tail -n 5 /pod-data/log.txt; echo '--- Total lines ---'; wc -l /pod-data/log.txt; sleep 5; done"]
+      volumeMounts:
+        - name: shared-data
+          mountPath: /pod-data # Mounts the 'shared-data' volume to the '/pod-data' directory in the container.
+
+  
