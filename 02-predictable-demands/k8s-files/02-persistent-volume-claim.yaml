@@ -1,0 +1,56 @@
+# NOTE: This example uses a hostPath for the PV, which is suitable for single-node clusters like Minikube
+# In a real multi-node cluster, you would use a network storage provider (e.g., NFS, Cloud Storage)
+
+#1. Define the Persistent-Volume (PV) - This represents the actual storage.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: my-pv-storage
+spec:
+  capacity:
+    storage: 1Gi # Define the size of the PV
+  accessModes:
+    - ReadWriteOnce # Can be mounted as read-write by a single node
+  hostPath:
+    path: /tmp/data # A directory on the host node
+
+---
+#2. Define the Persistent-Volume-Claim (PVC) - This is a request for storage by a user
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: my-pvc-claim
+spec:
+  accessModes:
+    - ReadWriteOnce # Requesting read-write access
+  resources:
+    requests:
+      storage: 500Mi # Request 500 MiB of storage, which will be bind to the 1Gi PV
+
+---
+#3. Define the Pod that uses the PVC for persistent storage
+apiVersion: v1
+kind: Pod
+metadata:
+  name: persistent-storage-pod
+spec:
+  volumes:
+   - name: my-persistent-storage
+     persistentVolumeClaim:
+       claimName: my-pvc-claim # Use the PVC defined above
+  containers:
+    - name: app-container
+      image: busybox
+      # This container writes the current date to a file in the persistent volume every 5 seconds
+      # This data will survive Pod restarts
+      command:
+        - /bin/sh
+        - -c
+        - |
+          while true; do
+            echo "Last update: $(date)" >> /app-data/status.txt
+            sleep 5
+          done
+      volumeMounts:
+        - mountPath: "/app-data"
+          name: my-persistent-storage
