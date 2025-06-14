@@ -166,4 +166,99 @@ Containers have ephermal filesystems, meaning any data written inside a containe
     ```bash
     kubectl delete -f 02-predictable-demands/k8s-files/02-persistent-volume-claim.yaml
     ```
+<br>
+
+---
+
+## Configuration Dependencies (ConfigMaps & Secrets)
+Stateless applications often need external configuration to run correctly. Instead of hardcoding values like database endpoints or feature flags into a container image, Kubernetes provides dedicated resources to manage this data. This creates a runtime dependency: the application relies on these resources being present in the cluster to start and function correctly.
+
+* ``ConfigMap``: Used to store non-confidental configuration data as key-value pairs.
+* ``Secret``: Designed specifically for sensitive data like passwords, API tokens, or TLS certificates. Kubernetes handles Secrets more securely than ConfigMaps.
+
+An application can consume this data in two primary ways: as **environment variables ot as **mounted files**.
+
+---
+
+* **``Configmap`` as Environment Variables**
+
+    This is one of the most common methods for providing configuration to an application. You define your configuration data in a ``ConfigMap`` and then use ``valueFrom`` in your Pod specification to inject that data as environment variables into your container.
+
+    ### Example
+    
+    In this example, we will:
+    1. Create a ``ConfigMap`` named ``app-config`` that holds two configuration keys: ``APP_MODE`` and ``LOG_LEVEL``.
+    2. Create a Pod that has a runtime dependency on this ``ConfigMap``.
+    3. The Container inside the Pod will read these values from its environment variables and print them to standart output.
+
+    You can find the YAML for this example here: [02-predictable-demands/k8s-files/03-configmap-env-vars.yaml](./k8s-files/03-configmap-env-vars.yaml)
+
+
+    ### Hands-on Demonstration
+
+    **1. Apply the Kubernetes Resources**
+    Create the ``ConfigMap`` and the Pod by applying the manifest. If the ``ConfigMap`` does not exist, the Pod will fail to start.
+    ```bash
+    kubectl apply -f 02-predictable-demands/k8s-files/03-configmap-env-vars.yaml
+    ```
+    **2. Check the Pod Logs**
+    Verify that the container has succesfully started and read the environment variables injected from the ``ConfigMap``.
+    ```bash
+    # Wait for the pod to be in 'Completed' state
+    kubectl get pod configmap-env-pod
+
+    # Check the logs
+    kubectl logs configmap-env-pod
+    ```
+    You should see the output: ``Starting app in 'mod': production with log level: 'info'.`` 
+    This confirms the application correctly consumed its configuration dependency
+
+    **3. Cleanup**
+    Remove the resources created in this example.
+    ```bash
+    kubectl delete -f 02-predictable-demands/k8s-files/03-configmap-env-vars.yaml
+    ```
+---
+
+
+* **``Configmap`` as a Volume**
+
+    Sometimes an application is desiged to read its configuration from files (e.g, ``app.properties``, ``settings.xml``). Kubernetes supports thsi by allowing you to mount a ``ConfigMap`` as a data volume. When you do this, each key in the ``ConfigMap``'s data field becomes a file in the mounted directory, and the value of that key becomes the content of the file.
+
+    ### Example
+    In this example we will:
+    1. Create a ``ConfigMap`` containing two keys, each holding multi-line configuration data.
+    2. Create a Pod that mounts this ``ConfigMap`` as a volume into the ``etc/config`` directory.
+    3. The container will then list the files in that directory and print their contents, demonstrating its dependency on the ``ConfigMap`` for its configuration files.
+
+    You can find the YAML for this example here: [02-predictable-demands/k8s-files/04-configmap-volume.yaml](./k8s-files/04-configmap-volume.yaml)
+
+
+    ### Hands-on Demonstration
+    **1. Apply the Kubernetes Resources**
+    ```bash
+    kubectl apply -f 02-predictable-demands/k8s-files/04-configmap-volume.yaml
+    ```
+
+    **2. Check the Pod Logs**
+    
+    The container's command is set up to explore the mounted volume and print what it finds.
+    ```bash
+    # Wait for the pod to be in 'Completed' state
+    kubectl get pod configmap-volume-pod
+
+    # Check the logs to see the file contents
+    kubectl logs configmap-volume-pod
+    ```
+    The output will show the two files (``app.properties`` and ``user.settings``) that were created from the ``ConfigMap`` keys, along with their content. This provides the application succesfully used the volume as its configuration source.
+
+    **3. Cleanup**
+    ```bash
+    kubectl delete -f 02-predictable-demands/k8s-files/04-configmap-volume.yaml
+    ```
+
+
+
+
+
 
