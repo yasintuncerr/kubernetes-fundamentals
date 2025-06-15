@@ -1,0 +1,25 @@
+# A Deployment to create "filler" Pods that consume resources
+# Since they don't specify a priorityClassName, they get the default low priority.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: low-priority-deployment
+  namespace: priority-test # Apply this deployment to the priority-test namespace
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: low-priority
+  template:
+    metadata:
+      labels:
+        app: low-priority
+    spec:
+      containers:
+      - name: app
+        image: busybox
+        command: ["/bin/sh", "-c", "sleep 3600"]
+        resources:
+          # Requesting a significant amount of CPU to fill up the node
+          requests:
+            cpu: "500m" # 0.5 CPU core
