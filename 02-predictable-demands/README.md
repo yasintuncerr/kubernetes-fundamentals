@@ -5,8 +5,7 @@ This repository contains hands-on examples illustrating the **Predictable Demand
 - Runtime Dependencies
 - Resource Profiles
 - Pod Priority
-- Project Resources
-- Capacity Planning
+- Project Resources & Capacity Planning
 
 ---
 
