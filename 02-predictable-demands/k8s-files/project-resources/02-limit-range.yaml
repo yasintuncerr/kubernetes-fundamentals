@@ -1,0 +1,47 @@
+# A new namespace for our test
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: limit-example
+---
+
+# The LimitRange Object
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: my-limits
+  namespace: limit-example
+spec:
+  limits:
+  - type: Container # This Limit applies to each container in the namespace
+    # Enforce minimum and maximum allowed values for requests/limits
+    max:
+      memory: "1Gi"
+      cpu: "1"
+    min:
+      memory: "64Mi"
+      cpu: "50m"
+    # set default values for containers that do not specify them
+    default:
+      memory: "256Mi"
+      cpu: "200m"
+
+    defaultRequest:
+      memory: "128Mi"
+      cpu: "100m"
+---
+
+# A test Pod with no reasources defined
+# The LimitRange will automatically its default values to this Pod upon creation.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: limitrange-pod
+  namespace: limit-example
+spec:
+  containers:
+  # The first container will have the default values applied
+  - name: app-container
+    image: busybox
+    command: ["/bin/sh", "-c", "sleep 3600"]
+    # No resources defined, so the LimitRange will apply defaults
