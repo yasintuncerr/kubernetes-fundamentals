@@ -1,0 +1,17 @@
+# A high-priority Pod that will trigger preemption if there are not enough resources.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: high-priority-pod
+  namespace: priority-test # Apply this Pod to the priority-test namespace
+spec:
+  priorityClassName: high-priority # Assign the high-priority class
+  containers:
+  - name: app
+    image: busybox
+    command: ["/bin/sh", "-c", "sleep 3600"]
+    resources:
+      requests:
+        cpu: "600m"  # 0.6 CPU Requests enough CPU that it might not fit without eviction
+
+  
