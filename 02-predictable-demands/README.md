@@ -15,5 +15,7 @@ To dive deeper into the theory and background of this pattern, see the following
 
 - 🔍 [Runtime Dependencies - Theory](./docs/01-Runtime-Dependencies.md)
 - ⚙️ [Resource Profiles - Guaranteed / Burstable / BestEffort](./docs/02-Resource-Profiles.md)
+- 🚦 [Pod Priority - Preemption & Scheduling](./docs/03-Pod-Priority.md)
+- 📊 [Project Resources & Capacity Planning](./docs/04-Project-Resources.md)
 
 ---
