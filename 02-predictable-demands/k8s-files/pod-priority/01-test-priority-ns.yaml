@@ -1,0 +1,21 @@
+# 00-priority-test-ns.yaml
+# Creates a dedicated namespace and applies a ResourceQuota.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: priority-test
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: priority-quota
+  namespace: priority-test
+spec:
+  hard:
+    # The quota must be large enough to hold all pods *before* preemption.
+    # 3 low-priority (1500m) + 1 high-priority (600m) = 2100m.
+    # This allows the high-priority pod to pass admission and reach the scheduler.
+    # The scheduler will then preempt a pod, and the final usage will be 1600m.
+    requests.cpu: "2100m"
+    # Pod Limitations
+    pods: "4"
